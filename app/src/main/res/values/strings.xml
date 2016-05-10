@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">SpendTrack</string>
+    <string name="new_spending">New Spending</string>
+    <string name="new_tag">New Tag</string>
+    <string name="dash">-</string>
+    <string name="to">To</string>
+    <string name="from">From</string>
+    <string name="date">Date</string>
+    <string name="purpose">Purpose</string>
+    <string name="amount">Amount</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="tag">Tag</string>
+    <string name="title_activity_main2">Main2Activity</string>
+    <string name="spendings">Spendings</string>
+    <string name="total">Total</string>
+</resources>

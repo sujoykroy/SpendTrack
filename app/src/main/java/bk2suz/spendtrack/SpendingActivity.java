@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import java.util.Date;
 
@@ -25,9 +26,9 @@ public class SpendingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_spending);
 
-
         Intent intent = getIntent();
         mTagRecord = (TagRecord) intent.getParcelableExtra(TAG_RECORD);
+        ((TextView)findViewById(R.id.text_view_tag)).setText(mTagRecord.getName());
 
         Button btnSave = (Button) findViewById(R.id.button_save);
         Button btnCancel = (Button) findViewById(R.id.button_cancel);

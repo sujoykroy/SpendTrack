@@ -116,7 +116,7 @@ public class DateView extends RelativeLayout {
         mCurrentYear = calendar.get(Calendar.YEAR);
 
         mYearSpinner.setSelection(new GregorianCalendar().get(Calendar.YEAR)-mCurrentYear);
-        mMonthSpinner.setSelection(mCurrentMonth-1);
+        mMonthSpinner.setSelection(mCurrentMonth);
         mDaySpinner.setSelection(mCurrentDay-1);
     }
 

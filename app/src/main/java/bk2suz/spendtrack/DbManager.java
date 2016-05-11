@@ -43,15 +43,16 @@ public class DbManager {
         public void onCreate(SQLiteDatabase db) {
             for(Table table: mTables) {
                 db.execSQL(table.getCreateSchema());
+                Log.d("hola", table.getCreateSchema());
             }
         }
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-            for(Table table: mTables) {
+            /*for(Table table: mTables) {
                 db.execSQL(table.getDeleteSchema());
             }
-            onCreate(db);
+            onCreate(db);*/
         }
 
         @Override

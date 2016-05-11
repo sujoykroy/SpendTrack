@@ -25,9 +25,9 @@ public abstract class Table {
     private static final String UNIQUE = "UNIQUE";
     private static final String AUTOINCREMENT = "AUTOINCREMENT";
 
-    private static final String CREATE_TABLE_SYNTAX = "CREATE TABLE IF NOT EXISTS %s (%s) %s";
-    private static final String DROP_TABLE_SYNTAX = "DROP TABLE IF EXISTS %s";
-    private static final String CLEAR_TABLE_SYNTAX = "DELETE FROM %s";
+    private static final String CREATE_TABLE_SYNTAX = "CREATE TABLE IF NOT EXISTS %s (%s) %s ;";
+    private static final String DROP_TABLE_SYNTAX = "DROP TABLE IF EXISTS %s ;";
+    private static final String CLEAR_TABLE_SYNTAX = "DELETE FROM %s ;";
 
     protected static class Column {
         public static final String CONFLICT_REPLACE = "REPLACE";
@@ -181,7 +181,7 @@ public abstract class Table {
         }
     }
 
-    public long inset(ContentValues values) {
+    public long insert(ContentValues values) {
         long rowId = -1;
         synchronized (mDbManager.AccessLock) {
             SQLiteDatabase db = null;

@@ -7,7 +7,9 @@ import android.util.Log;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 
 /**
  * Created by sujoy on 9/5/16.
@@ -26,7 +28,7 @@ public class SpendingRecord {
             columns.add(new Column(FIELD_TAG_ID, Column.Type.Integer).setIsNullable(false));
             columns.add(new Column(FIELD_PURPOSE, Column.Type.Text).setIsNullable(false));
             columns.add(new Column(FIELD_AMOUNT, Column.Type.Real).setIsNullable(false));
-            columns.add(new Column(FIELD_TIMESTAMP, Column.Type.Real).setIsNullable(false));
+            columns.add(new Column(FIELD_TIMESTAMP, Column.Type.Integer).setIsNullable(false));
             return buildCreateSchema(columns);
         }
     };
@@ -35,12 +37,12 @@ public class SpendingRecord {
     private String mPurpose;
     private Date mDate;
 
-    private static SimpleDateFormat sSimpleDate =  new SimpleDateFormat("dd/MM/yyyy");
+    private static SimpleDateFormat sSimpleDate =  new SimpleDateFormat("dd/MM/yyyy z");
 
-    public SpendingRecord(float timestamp, String purpose, float amount) {
+    public SpendingRecord(long timestamp, String purpose, float amount) {
         mAmount = amount;
         mPurpose = purpose;
-        mDate = new Date((long) timestamp);
+        mDate = new Date(timestamp);
     }
 
     public String getDateString() {
@@ -66,7 +68,7 @@ public class SpendingRecord {
         values.put(FIELD_PURPOSE, purpose.trim());
         values.put(FIELD_AMOUNT, amount);
         values.put(FIELD_TIMESTAMP, date.getTime());
-        SpendingTable.inset(values);
+        SpendingTable.insert(values);
     }
 
     public static ArrayList<SpendingRecord> getList(Date fromDate, Date toDate, TagRecord tagRecord) {
@@ -96,7 +98,7 @@ public class SpendingRecord {
                         selection.toString(), null, null, null, orderBy);
                 while(cursor.moveToNext()) {
                     SpendingRecord spendingRecord = new SpendingRecord(
-                            cursor.getFloat(0), cursor.getString(1), cursor.getFloat(2));
+                            cursor.getLong(0), cursor.getString(1), cursor.getFloat(2));
                     spendingRecords.add(spendingRecord);
                 }
                 cursor.close();

@@ -3,10 +3,8 @@ package bk2suz.spendtrack;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Log;
 
 import java.util.ArrayList;
 
@@ -22,6 +20,7 @@ public class TagRecord implements Parcelable {
         public String getCreateSchema() {
             ArrayList<Column> columns = new ArrayList<Column>();
             columns.add(new Column(FIELD_NAME, Column.Type.Text).setIsNullable(false));
+            StringBuilder sql = new StringBuilder(buildCreateSchema(columns));
             return buildCreateSchema(columns);
         }
     };
@@ -71,7 +70,7 @@ public class TagRecord implements Parcelable {
         if (tagName.trim().length()==0) return;
         ContentValues values = new ContentValues();
         values.put(FIELD_NAME, tagName.trim());
-        TagTable.inset(values);
+        TagTable.insert(values);
     }
 
     public static ArrayList<TagRecord> getList() {
@@ -88,6 +87,11 @@ public class TagRecord implements Parcelable {
                     tagRecords.add(tagRecord);
                 }
                 cursor.close();
+                if (tagRecords.size()==0) {
+                    addNew("General Entries");
+                    addNew("Pendings");
+                    tagRecords = getList();
+                }
                 db.close();
             }
         }

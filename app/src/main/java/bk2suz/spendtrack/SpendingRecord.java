@@ -3,18 +3,24 @@ package bk2suz.spendtrack;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
+import android.util.SparseArray;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 
 /**
  * Created by sujoy on 9/5/16.
  */
-public class SpendingRecord {
+public class SpendingRecord implements Parcelable  {
     public static final String FIELD_ROWID = "rowid";
     public static final String FIELD_TAG_ID = "tagId";
     public static final String FIELD_PURPOSE = "purpose";
@@ -33,20 +39,60 @@ public class SpendingRecord {
         }
     };
 
+    private long mId;
+    private long mTagId;
     private float mAmount;
     private String mPurpose;
     private Date mDate;
 
-    private static SimpleDateFormat sSimpleDate =  new SimpleDateFormat("dd/MM/yyyy z");
+    private static SimpleDateFormat sSimpleDate =  new SimpleDateFormat("dd/MM/yyyy");
 
-    public SpendingRecord(long timestamp, String purpose, float amount) {
+    public SpendingRecord(long id, long timestamp, String purpose, float amount, long tagId) {
+        mId = id;
         mAmount = amount;
         mPurpose = purpose;
         mDate = new Date(timestamp);
+        mTagId = tagId;
     }
+
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(mId);
+        dest.writeFloat(mAmount);
+        dest.writeString(mPurpose);
+        dest.writeLong(mDate.getTime());
+        dest.writeLong(mTagId);
+    }
+
+    public static final Parcelable.Creator<SpendingRecord> CREATOR = new Creator<SpendingRecord>() {
+        @Override
+        public SpendingRecord createFromParcel(Parcel source) {
+            Long id = source.readLong();
+            float amount = source.readFloat();
+            String purpose = source.readString();
+            Long timstamp = source.readLong();
+            Long tagId= source.readLong();
+            return new SpendingRecord(id, timstamp, purpose, amount, tagId);
+        }
+
+        @Override
+        public SpendingRecord[] newArray(int size) {
+            return new SpendingRecord[size];
+        }
+    };
 
     public String getDateString() {
         return sSimpleDate.format(mDate);
+    }
+
+    public Date getDate() {
+        return mDate;
     }
 
     public String getPurpose() {
@@ -59,6 +105,25 @@ public class SpendingRecord {
 
     public float getAmount() {
         return mAmount;
+    }
+
+    public long getTagId() {
+        return mTagId;
+    }
+
+    public boolean update(Date date, String purpose, float amount) {
+        if (purpose.trim().length()==0) return false;
+        ContentValues values = new ContentValues();
+        values.put(FIELD_PURPOSE, purpose.trim());
+        values.put(FIELD_AMOUNT, amount);
+        values.put(FIELD_TIMESTAMP, date.getTime());
+        long rowCount = SpendingTable.update(values, String.format("%s = %d", FIELD_ROWID, mId), null);
+        if (rowCount>0) {
+            mAmount = amount;
+            mPurpose = purpose;
+            mDate = date;
+        }
+        return rowCount>0;
     }
 
     public static void addNew(TagRecord tagRecord, Date date, String purpose, float amount) {
@@ -77,7 +142,8 @@ public class SpendingRecord {
         synchronized (dbManager.AccessLock) {
             SQLiteDatabase db = dbManager.getDbHelper().getReadableDatabase();
             if (db != null) {
-                String[] mSelectColumns = new String[] {FIELD_TIMESTAMP, FIELD_PURPOSE, FIELD_AMOUNT};
+                String[] mSelectColumns = new String[] {
+                        FIELD_ROWID, FIELD_TIMESTAMP, FIELD_PURPOSE, FIELD_AMOUNT, FIELD_TAG_ID};
                 String orderBy = String.format("%s ASC", FIELD_TIMESTAMP);
                 ArrayList<String> selectionList = new ArrayList<>();
                 if(fromDate != null) {
@@ -98,7 +164,8 @@ public class SpendingRecord {
                         selection.toString(), null, null, null, orderBy);
                 while(cursor.moveToNext()) {
                     SpendingRecord spendingRecord = new SpendingRecord(
-                            cursor.getLong(0), cursor.getString(1), cursor.getFloat(2));
+                            cursor.getLong(0), cursor.getLong(1), cursor.getString(2),
+                            cursor.getFloat(3), cursor.getLong(4));
                     spendingRecords.add(spendingRecord);
                 }
                 cursor.close();
@@ -106,5 +173,30 @@ public class SpendingRecord {
             }
         }
         return spendingRecords;
+    }
+
+    public static void export(FileWriter fileWriter, HashMap<Long, String> tags) throws IOException {
+        DbManager dbManager = SpendingTable.getDbManager();
+        synchronized (dbManager.AccessLock) {
+            SQLiteDatabase db = dbManager.getDbHelper().getReadableDatabase();
+            if (db != null) {
+                String[] mSelectColumns = new String[]{
+                        FIELD_ROWID, FIELD_TIMESTAMP, FIELD_PURPOSE, FIELD_AMOUNT, FIELD_TAG_ID};
+                String orderBy = String.format("%s ASC", FIELD_TIMESTAMP);
+                Cursor cursor = db.query(SpendingTable.getTableName(), mSelectColumns, null, null, null, null, orderBy);
+                while (cursor.moveToNext()) {
+                    SpendingRecord spendingRecord = new SpendingRecord(
+                            cursor.getLong(0), cursor.getLong(1), cursor.getString(2),
+                            cursor.getFloat(3), cursor.getLong(4));
+                    fileWriter.write(String.format("\"%s\",", spendingRecord.getDateString()));
+                    fileWriter.write(String.format("\"%s\",", spendingRecord.getPurpose()));
+                    fileWriter.write(String.format("%s,", spendingRecord.getAmountString()));
+                    fileWriter.write(String.format("\"%s\"", tags.get(spendingRecord.mTagId)));
+                    fileWriter.write("\n");
+                }
+                cursor.close();
+                db.close();
+            }
+        }
     }
 }

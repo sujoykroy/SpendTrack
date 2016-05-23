@@ -14,4 +14,6 @@
     <string name="title_activity_main2">Main2Activity</string>
     <string name="spendings">Spendings</string>
     <string name="total">Total</string>
+    <string name="export">Export All</string>
+    <string name="export_done">Data is exported in Documents folder.</string>
 </resources>

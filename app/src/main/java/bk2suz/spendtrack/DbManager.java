@@ -5,6 +5,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.util.ArrayList;
 
 /**
@@ -43,7 +45,6 @@ public class DbManager {
         public void onCreate(SQLiteDatabase db) {
             for(Table table: mTables) {
                 db.execSQL(table.getCreateSchema());
-                Log.d("hola", table.getCreateSchema());
             }
         }
 

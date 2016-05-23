@@ -7,6 +7,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Created by sujoy on 9/5/16.
@@ -98,5 +99,32 @@ public class TagRecord implements Parcelable {
         return tagRecords;
     }
 
+    public static HashMap<Long, String> getHashMap() {
+        ArrayList<TagRecord> tagRecords = getList();
+        HashMap<Long, String> tags = new HashMap<>();
+        for (TagRecord tagRecord: tagRecords) {
+            tags.put(tagRecord.mId, tagRecord.mName);
+        }
+        return tags;
+    }
+
+    public static TagRecord getById(long id) {
+        TagRecord tagRecord = null;
+        DbManager dbManager = TagTable.getDbManager();
+        synchronized (dbManager.AccessLock) {
+            SQLiteDatabase db = dbManager.getDbHelper().getReadableDatabase();
+            if (db != null) {
+                String[] mSelectColumns = new String[] {FIELD_ROWID, FIELD_NAME};
+                String selection = String.format("%s = %d", FIELD_ROWID, id);
+                Cursor cursor = db.query(TagTable.getTableName(), mSelectColumns, selection, null, null, null, null);
+                while(cursor.moveToNext()) {
+                    tagRecord = new TagRecord(cursor.getString(1), cursor.getLong(0));
+                }
+                cursor.close();
+                db.close();
+            }
+        }
+        return tagRecord;
+    }
 
 }

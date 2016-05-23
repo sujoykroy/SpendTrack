@@ -28,7 +28,14 @@ public class SpendingActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
         mTagRecord = (TagRecord) intent.getParcelableExtra(TAG_RECORD);
-        ((TextView)findViewById(R.id.text_view_tag)).setText(mTagRecord.getName());
+        if (mTagRecord == null) {
+            mSpendingRecord = (SpendingRecord) intent.getParcelableExtra(SPENDING_RECORD);
+            mTagRecord = TagRecord.getById(mSpendingRecord.getTagId());
+            ((EditText)findViewById(R.id.edt_purpose)).setText(mSpendingRecord.getPurpose());
+            ((EditText)findViewById(R.id.edt_amount)).setText(mSpendingRecord.getAmountString());
+            ((DateView)findViewById(R.id.date_view)).setDate(mSpendingRecord.getDate());
+        }
+        ((TextView) findViewById(R.id.text_view_tag)).setText(mTagRecord.getName());
 
         Button btnSave = (Button) findViewById(R.id.button_save);
         Button btnCancel = (Button) findViewById(R.id.button_cancel);
@@ -36,11 +43,23 @@ public class SpendingActivity extends AppCompatActivity {
         btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                String purpose = ((EditText)findViewById(R.id.edt_purpose)).getText().toString();
+                String amount = ((EditText)findViewById(R.id.edt_amount)).getText().toString();
+                Date date = ((DateView)findViewById(R.id.date_view)).getDate();
+                float floatAmount;
+                try {
+                    floatAmount = Float.parseFloat(amount);
+                } catch (NumberFormatException e) {
+                    return;
+                }
+                ((Button) v).setEnabled(false);
+
                 if (mSpendingRecord == null) {
-                    Date date = ((DateView)findViewById(R.id.date_view)).getDate();
-                    String purpose = ((EditText)findViewById(R.id.edt_purpose)).getText().toString();
-                    String amount = ((EditText)findViewById(R.id.edt_amount)).getText().toString();
-                    SpendingRecord.addNew(mTagRecord, date, purpose, Float.parseFloat(amount));
+                    SpendingRecord.addNew(mTagRecord, date, purpose, floatAmount);
+                    setResult(RESULT_OK);
+                    finish();
+                } else {
+                    mSpendingRecord.update(date, purpose, floatAmount);
                     setResult(RESULT_OK);
                     finish();
                 }

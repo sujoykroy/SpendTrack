@@ -3,6 +3,7 @@ package bk2suz.spendtrack;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.Environment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -20,15 +21,21 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.TimeZone;
 
 public class MainActivity extends AppCompatActivity {
     private static final int NEW_SPENDING_REQUEST = 1;
+    private static final int EDIT_SPENDING_REQUEST = 2;
 
     private TagSpinnerAdapter mTagSpinnerAdapter;
     private SpendingListAdapter mSpendingListAdapter;
@@ -89,6 +96,15 @@ public class MainActivity extends AppCompatActivity {
 
         mSpendingListAdapter = new SpendingListAdapter(getBaseContext());
         ListView spendingListView = (ListView) findViewById(R.id.list_view_spendings);
+        spendingListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent(MainActivity.this, SpendingActivity.class);
+                intent.putExtra(SpendingActivity.SPENDING_RECORD, mSpendingListAdapter.getItem(position));
+                startActivityForResult(intent, EDIT_SPENDING_REQUEST);
+                return true;
+            }
+        });
         spendingListView.setAdapter(mSpendingListAdapter);
 
         Button btnShowSpendings = (Button) findViewById(R.id.button_show_spendings);
@@ -98,7 +114,31 @@ public class MainActivity extends AppCompatActivity {
                 mSpendingListAdapter.updateSpendingRecords(mDateViewStart.getDate(), mDateViewEnd.getDate(), mCurrentTagRecord);
             }
         });
-        mSpendingListAdapter.updateSpendingRecords(mDateViewStart.getDate(), mDateViewEnd.getDate(), mCurrentTagRecord);
+
+        Button btnExport = (Button) findViewById(R.id.button_export);
+        btnExport.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String filename = String.format("SpendTrack_Export_%d.csv",new Date().getTime());
+                File file = new File(Environment.getExternalStoragePublicDirectory(
+                        Environment.DIRECTORY_DOCUMENTS), filename);
+                try {
+                    file.createNewFile();
+                } catch (IOException e) {
+                    return;
+                }
+                try {
+                    FileWriter fileWriter = new FileWriter(file);
+                    HashMap<Long, String> tags = TagRecord.getHashMap();
+                    SpendingRecord.export(fileWriter, tags);
+                    fileWriter.close();
+                    Toast.makeText(getApplicationContext(), R.string.export_done, Toast.LENGTH_SHORT);
+                } catch (IOException e) {}
+
+            }
+        });
+
+        //mSpendingListAdapter.updateSpendingRecords(mDateViewStart.getDate(), mDateViewEnd.getDate(), mCurrentTagRecord);
     }
 
     private void openNewTagDialog() {
@@ -154,6 +194,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public void updateTagRecords() {
+            mTagRecords.clear();
             mTagRecords.addAll(TagRecord.getList());
             notifyDataSetChanged();
         }

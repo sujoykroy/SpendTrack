@@ -119,10 +119,11 @@ public class MainActivity extends AppCompatActivity {
         btnExport.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String filename = String.format("SpendTrack_Export_%d.csv",new Date().getTime());
-                File file = new File(Environment.getExternalStoragePublicDirectory(
-                        Environment.DIRECTORY_DOCUMENTS), filename);
+                String filename = String.format("SpendTrack_Export_%d.csv.txt",new Date().getTime());
+                File folder = Environment.getExternalStoragePublicDirectory("SpendTrack");
+                File file = new File(folder, filename);
                 try {
+                    folder.mkdir();
                     file.createNewFile();
                 } catch (IOException e) {
                     return;
@@ -132,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
                     HashMap<Long, String> tags = TagRecord.getHashMap();
                     SpendingRecord.export(fileWriter, tags);
                     fileWriter.close();
-                    Toast.makeText(getApplicationContext(), R.string.export_done, Toast.LENGTH_SHORT);
+                    Toast.makeText(getApplicationContext(), R.string.export_done, Toast.LENGTH_SHORT).show();
                 } catch (IOException e) {}
 
             }

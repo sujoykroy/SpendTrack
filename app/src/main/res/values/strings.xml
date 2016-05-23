@@ -16,4 +16,7 @@
     <string name="total">Total</string>
     <string name="export">Export All</string>
     <string name="export_done">Data is exported in Documents folder.</string>
+    <string name="tags">Tags</string>
+    <string name="sum">Sum</string>
+    <string name="all">All</string>
 </resources>

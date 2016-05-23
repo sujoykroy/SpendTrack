@@ -16,6 +16,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.HashSet;
 
 /**
  * Created by sujoy on 9/5/16.
@@ -111,6 +112,10 @@ public class SpendingRecord implements Parcelable  {
         return mTagId;
     }
 
+    public long getId() {
+        return mId;
+    }
+
     public boolean update(Date date, String purpose, float amount) {
         if (purpose.trim().length()==0) return false;
         ContentValues values = new ContentValues();
@@ -157,6 +162,56 @@ public class SpendingRecord implements Parcelable  {
                 }
                 StringBuilder selection = new StringBuilder();
                 for (int i=0; i<selectionList.size(); i++) {
+                    selection.append(selectionList.get(i));
+                    if(i<selectionList.size()-1) selection.append(" AND ");
+                }
+                Cursor cursor = db.query(SpendingTable.getTableName(), mSelectColumns,
+                        selection.toString(), null, null, null, orderBy);
+                while(cursor.moveToNext()) {
+                    SpendingRecord spendingRecord = new SpendingRecord(
+                            cursor.getLong(0), cursor.getLong(1), cursor.getString(2),
+                            cursor.getFloat(3), cursor.getLong(4));
+                    spendingRecords.add(spendingRecord);
+                }
+                cursor.close();
+                db.close();
+            }
+        }
+        return spendingRecords;
+    }
+
+    public static ArrayList<SpendingRecord> getList(Date fromDate, Date toDate, HashSet<Long> tagIds) {
+        ArrayList<SpendingRecord> spendingRecords = new ArrayList<>();
+
+            StringBuilder tagIdsString = new StringBuilder();
+        int i =0;
+        for(long tagId: tagIds) {
+            tagIdsString.append(String.valueOf(tagId));
+            if(i<tagIds.size()-1) {
+                tagIdsString.append(",");
+            }
+            i++;
+        }
+
+        DbManager dbManager = SpendingTable.getDbManager();
+        synchronized (dbManager.AccessLock) {
+            SQLiteDatabase db = dbManager.getDbHelper().getReadableDatabase();
+            if (db != null) {
+                String[] mSelectColumns = new String[] {
+                        FIELD_ROWID, FIELD_TIMESTAMP, FIELD_PURPOSE, FIELD_AMOUNT, FIELD_TAG_ID};
+                String orderBy = String.format("%s ASC", FIELD_TIMESTAMP);
+                ArrayList<String> selectionList = new ArrayList<>();
+                if(fromDate != null) {
+                    selectionList.add(String.format("%s >= %d", FIELD_TIMESTAMP , fromDate.getTime()));
+                }
+                if(toDate != null) {
+                    selectionList.add(String.format("%s <= %d", FIELD_TIMESTAMP , toDate.getTime()));
+                }
+                if(tagIds != null) {
+                    selectionList.add(String.format("%s IN (%s)", FIELD_TAG_ID , tagIdsString.toString()));
+                }
+                StringBuilder selection = new StringBuilder();
+                for (i=0; i<selectionList.size(); i++) {
                     selection.append(selectionList.get(i));
                     if(i<selectionList.size()-1) selection.append(" AND ");
                 }

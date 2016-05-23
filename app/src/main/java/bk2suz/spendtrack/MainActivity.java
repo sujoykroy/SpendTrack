@@ -138,6 +138,15 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        Button btnSum = (Button) findViewById(R.id.button_summation);
+        btnSum.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, SummationActivity.class);
+                startActivity(intent);
+            }
+        });
+
         //mSpendingListAdapter.updateSpendingRecords(mDateViewStart.getDate(), mDateViewEnd.getDate(), mCurrentTagRecord);
     }
 

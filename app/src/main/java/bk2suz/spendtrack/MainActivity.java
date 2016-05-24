@@ -60,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
         mDateViewEnd.setDate(new GregorianCalendar().getTime());
 
         mLinearLayoutTotal = (LinearLayout) findViewById(R.id.linear_layout_total);
+        mLinearLayoutTotal.setVisibility(View.INVISIBLE);
         mTextViewTotal = (TextView) findViewById(R.id.text_view_total);
 
         Button btnNewTag = (Button) findViewById(R.id.button_new_tag);
@@ -255,7 +256,7 @@ public class MainActivity extends AppCompatActivity {
                 mTotal += record.getAmount();
             }
             if (mSpendingRecords.size() ==0 ) {
-                mLinearLayoutTotal.setVisibility(View.GONE);
+                mLinearLayoutTotal.setVisibility(View.INVISIBLE);
             } else {
                 mLinearLayoutTotal.setVisibility(View.VISIBLE);
                 mTextViewTotal.setText(String.valueOf(mTotal));

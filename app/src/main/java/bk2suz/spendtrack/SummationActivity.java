@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -109,10 +110,11 @@ public class SummationActivity extends AppCompatActivity {
                 view = convertView;
             }
             CheckBox checkBox = (CheckBox) view.findViewById(R.id.checkBox);
-            final TagRecord tagRecord = getItem(position);
+            TagRecord tagRecord = getItem(position);
+            final long tagId = tagRecord.getId();
             checkBox.setText(tagRecord.getName());
             checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                private long mTagId = tagRecord.getId();
+                private long mTagId = tagId;
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     if (isChecked) mSelectedIds.add(mTagId);

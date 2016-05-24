@@ -107,7 +107,7 @@
         <Button
             android:id="@+id/button_new_spending"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_gravity="center"
             android:text="@string/new_spending"
             android:layout_weight="1" />
@@ -116,7 +116,7 @@
         <Button
             android:id="@+id/button_summation"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_gravity="center"
             android:text="@string/sum"
             android:layout_weight="1" />
@@ -124,7 +124,7 @@
         <Button
             android:id="@+id/button_export"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_gravity="center"
             android:text="@string/export"
             android:layout_weight="1" />
@@ -132,7 +132,7 @@
         <Button
             android:id="@+id/button_new_tag"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:text="@string/new_tag"
             android:layout_gravity="center_horizontal"
             android:layout_weight="1" />

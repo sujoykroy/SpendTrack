@@ -56,7 +56,8 @@ public class MainActivity extends AppCompatActivity {
         mDateViewStart = (DateView) findViewById(R.id.date_view_start);
         mDateViewEnd = (DateView) findViewById(R.id.date_view_end);
 
-        mDateViewStart.setDate(new GregorianCalendar(2007, 1, 1).getTime());
+        mDateViewStart.setDate(Preference.getDate(this,
+                Preference.PREF_LIST_START_DATE, new GregorianCalendar(2007, 1, 1).getTime()));
         mDateViewEnd.setDate(new GregorianCalendar().getTime());
 
         mLinearLayoutTotal = (LinearLayout) findViewById(R.id.linear_layout_total);
@@ -87,6 +88,7 @@ public class MainActivity extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 TagRecord tagRecord= mTagSpinnerAdapter.getItem(position);
                 mCurrentTagRecord = tagRecord;
+                Preference.saveLastTag(getBaseContext(), tagRecord.getName());
             }
 
             @Override
@@ -94,6 +96,7 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+        tagSpinnerView.setSelection(mTagSpinnerAdapter.getIndexOfItem(Preference.getLastTag(this)));
 
         mSpendingListAdapter = new SpendingListAdapter(getBaseContext());
         ListView spendingListView = (ListView) findViewById(R.id.list_view_spendings);
@@ -152,6 +155,12 @@ public class MainActivity extends AppCompatActivity {
         //mSpendingListAdapter.updateSpendingRecords(mDateViewStart.getDate(), mDateViewEnd.getDate(), mCurrentTagRecord);
     }
 
+    @Override
+    protected void onStop() {
+        Preference.saveDate(this, Preference.PREF_LIST_START_DATE, mDateViewStart.getDate());
+        super.onStop();
+    }
+
     private void openNewTagDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.new_tag);
@@ -208,6 +217,13 @@ public class MainActivity extends AppCompatActivity {
             mTagRecords.clear();
             mTagRecords.addAll(TagRecord.getList());
             notifyDataSetChanged();
+        }
+
+        public int getIndexOfItem(String name) {
+            for (int i=0; i<mTagRecords.size(); i++) {
+                if (mTagRecords.get(i).getName().equals(name)) return i;
+            }
+            return -1;
         }
 
         @Override

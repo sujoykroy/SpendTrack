@@ -37,7 +37,8 @@ public class SummationActivity extends AppCompatActivity {
         DateView dateViewStart = (DateView) findViewById(R.id.date_view_start);
         DateView dateViewEnd = (DateView) findViewById(R.id.date_view_end);
 
-        dateViewStart.setDate(new GregorianCalendar(2007, 1, 1).getTime());
+        dateViewStart.setDate(Preference.getDate(this,
+                Preference.PREF_SUM_START_DATE, new GregorianCalendar(2007, 1, 1).getTime()));
         dateViewEnd.setDate(new GregorianCalendar().getTime());
 
         mTextViewTotal = (TextView) findViewById(R.id.text_view_total);
@@ -70,6 +71,13 @@ public class SummationActivity extends AppCompatActivity {
                 showTotal();
             }
         });
+    }
+
+    @Override
+    protected void onStop() {
+        DateView dateViewStart = (DateView) findViewById(R.id.date_view_start);
+        Preference.saveDate(this, Preference.PREF_SUM_START_DATE, dateViewStart.getDate());
+        super.onStop();
     }
 
     public void showTotal() {

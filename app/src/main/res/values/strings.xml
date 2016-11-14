@@ -20,4 +20,5 @@
     <string name="sum">Sum</string>
     <string name="all">All</string>
     <string name="fetch">Fetch</string>
+    <string name="text">Text</string>
 </resources>

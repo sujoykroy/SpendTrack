@@ -218,4 +218,23 @@ public abstract class Table {
         }
         return rowCount;
     }
+
+    public long delete(String whereClause, String[] whereArgs) {
+        long rowCount = -1;
+        synchronized (mDbManager.AccessLock) {
+            SQLiteDatabase db = null;
+            try {
+                db = mDbManager.getDbHelper().getWritableDatabase();
+            } catch (Exception e) {
+                db = null;
+            }
+            if (db == null) {
+                rowCount = -2;
+            } else {
+                rowCount = db.delete(mTableName, whereClause, whereArgs);
+                db.close();
+            }
+        }
+        return rowCount;
+    }
 }

@@ -131,6 +131,11 @@ public class SpendingRecord implements Parcelable  {
         return rowCount>0;
     }
 
+    public boolean delete() {
+        long rowCount = SpendingTable.delete(String.format("%s = %d", FIELD_ROWID, mId), null);
+        return rowCount>0;
+    }
+
     public static void addNew(TagRecord tagRecord, Date date, String purpose, float amount) {
         if (purpose.trim().length()==0) return;
         ContentValues values = new ContentValues();

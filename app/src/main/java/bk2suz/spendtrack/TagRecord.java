@@ -13,6 +13,7 @@ import java.util.HashMap;
  * Created by sujoy on 9/5/16.
  */
 public class TagRecord implements Parcelable {
+    public static final String TEMP_TAG = "Temporary";
     public static final String FIELD_ROWID = "rowid";
     public static final String FIELD_NAME = "name";
 
@@ -88,13 +89,13 @@ public class TagRecord implements Parcelable {
                     tagRecords.add(tagRecord);
                 }
                 cursor.close();
-                if (tagRecords.size()==0) {
-                    addNew("General Entries");
-                    addNew("Pendings");
-                    tagRecords = getList();
-                }
                 db.close();
             }
+        }
+        if (tagRecords.size()==0) {
+            addNew("General Entries");
+            addNew(TagRecord.TEMP_TAG);
+            tagRecords = getList();
         }
         return tagRecords;
     }

@@ -68,11 +68,12 @@ public class TagRecord implements Parcelable {
         return mId;
     }
 
-    public static void addNew(String tagName) {
-        if (tagName.trim().length()==0) return;
+    public static long addNew(String tagName) {
+        if (tagName.trim().length()==0) return -1;
         ContentValues values = new ContentValues();
         values.put(FIELD_NAME, tagName.trim());
-        TagTable.insert(values);
+        long rowId = TagTable.insert(values);
+        return rowId;
     }
 
     public static ArrayList<TagRecord> getList() {
@@ -105,6 +106,15 @@ public class TagRecord implements Parcelable {
         HashMap<Long, String> tags = new HashMap<>();
         for (TagRecord tagRecord: tagRecords) {
             tags.put(tagRecord.mId, tagRecord.mName);
+        }
+        return tags;
+    }
+
+    public static HashMap<String, Long> getReverseHashMap() {
+        ArrayList<TagRecord> tagRecords = getList();
+        HashMap<String, Long> tags = new HashMap<>();
+        for (TagRecord tagRecord: tagRecords) {
+            tags.put(tagRecord.mName, tagRecord.mId);
         }
         return tags;
     }

@@ -3,7 +3,10 @@ package bk2suz.spendtrack;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Environment;
+import android.os.ParcelFileDescriptor;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -23,19 +26,29 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.TimeZone;
+import java.util.logging.Logger;
 
 public class MainActivity extends AppCompatActivity {
     private static final int NEW_SPENDING_REQUEST = 1;
     private static final int EDIT_SPENDING_REQUEST = 2;
+    private static final int FILE_SELECT_CODE = 3;
 
     private TagSpinnerAdapter mTagSpinnerAdapter;
     private SpendingListAdapter mSpendingListAdapter;
@@ -46,6 +59,8 @@ public class MainActivity extends AppCompatActivity {
 
     private LinearLayout mLinearLayoutTotal;
     private TextView mTextViewTotal;
+
+    CsvImportTask mCsvImportTask = new CsvImportTask();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -143,6 +158,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        Button btnImport = (Button) findViewById(R.id.button_import);
+        btnImport.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showFileChooser();
+            }
+        });
+
         Button btnSum = (Button) findViewById(R.id.button_summation);
         btnSum.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -159,6 +182,22 @@ public class MainActivity extends AppCompatActivity {
     protected void onStop() {
         Preference.saveDate(this, Preference.PREF_LIST_START_DATE, mDateViewStart.getDate());
         super.onStop();
+    }
+
+    private void showFileChooser() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.setType("*/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+
+        try {
+            startActivityForResult(
+                    Intent.createChooser(intent, "Select a File to Import"),
+                    FILE_SELECT_CODE);
+        } catch (android.content.ActivityNotFoundException ex) {
+            // Potentially direct the user to the Market with a Dialog
+            Toast.makeText(this, "Please install a File Manager.",
+                    Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void openNewTagDialog() {
@@ -195,12 +234,52 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == NEW_SPENDING_REQUEST) {
-            if (resultCode == RESULT_OK) {
-                //do something
-            }
+        switch(requestCode) {
+            case NEW_SPENDING_REQUEST:
+                if (resultCode == RESULT_OK) {
+                    //do something
+                }
+                break;
+            case FILE_SELECT_CODE:
+                // Get the Uri of the selected file
+                if (data == null) break;
+                Uri uri = data.getData();
+                //Log.d("SpenTrack", "File Uri: " + uri.toString());
+                mCsvImportTask.execute(uri);
+                break;
         }
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    class CsvImportTask extends AsyncTask<Uri, Void, Integer> {
+
+        @Override
+        protected Integer doInBackground(Uri... uris) {
+            ParcelFileDescriptor parcelFileDescriptor =
+                    null;
+            try {
+                parcelFileDescriptor = getContentResolver().openFileDescriptor(uris[0], "r");
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+                return 0;
+            }
+            FileDescriptor fileDescriptor = parcelFileDescriptor.getFileDescriptor();
+            //Log.d("Spentrack", "Way 1");
+            return SpendingRecord.importFromCSV(fileDescriptor);
+        }
+
+        @Override
+        protected void onPreExecute() {
+            String text = String.format("records are being fetched from csv.");
+            Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        protected void onPostExecute(Integer integer) {
+            //Log.d("Spentrack", "Way 2");
+            String text = String.format("%d records are added from csv.", integer);
+            Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show();
+        }
     }
 
     class TagSpinnerAdapter extends BaseAdapter {

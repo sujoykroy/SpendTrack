@@ -3,13 +3,21 @@ package bk2suz.spendtrack;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.nfc.Tag;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseArray;
 
+import java.io.BufferedReader;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -17,6 +25,8 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by sujoy on 9/5/16.
@@ -258,5 +268,62 @@ public class SpendingRecord implements Parcelable  {
                 db.close();
             }
         }
+    }
+
+    public static int importFromCSV(FileDescriptor fileDescriptor) {
+        InputStream inputStream = new FileInputStream(fileDescriptor);
+
+        BufferedReader reader = new BufferedReader(
+                new InputStreamReader(inputStream)
+        );
+        String line;
+        HashMap<String, Long> tagMap = TagRecord.getReverseHashMap();
+
+        Pattern ParamSplitter = Pattern.compile("\"[^\"]*\"|[^,]+");
+        int recordCount = 0;
+        try {
+            ArrayList<String> items = new ArrayList<>();
+            while ((line = reader.readLine()) != null) {
+                items.clear();
+                Matcher matcher = ParamSplitter.matcher(line);
+                int i = 0;
+                while (matcher.find()) {
+                    items.add(i, matcher.group().replace('"', ' ').trim());
+                    i++;
+                }
+                //Log.d("Sentrack", TextUtils.join("---",
+                //        new String[]{items.get(0), items.get(1), items.get(2), items.get(3)}));
+                Date date;
+                try {
+                    date = sSimpleDate.parse(items.get(0));
+                } catch (ParseException e) {
+                    //e.printStackTrace();
+                    continue;
+                }
+                String purpose = items.get(1);
+                float amount = Float.parseFloat(items.get(2));
+                String tagName = items.get(3);
+                if (!tagMap.containsKey(tagName)) {
+                    tagMap.put(tagName, TagRecord.addNew(tagName));
+                }
+                TagRecord tagRecord = new TagRecord(
+                    tagName, tagMap.get(tagName)
+                );
+                addNew(tagRecord, date, purpose, amount);
+                //Log.d("Sentrack2", TextUtils.join("---",
+                //        new String[]{items.get(0), items.get(1), items.get(2), items.get(3)}));
+                recordCount++;
+
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            reader.close();
+            inputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return recordCount;
     }
 }

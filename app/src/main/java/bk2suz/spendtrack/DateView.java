@@ -248,6 +248,7 @@ public class DateView extends RelativeLayout {
 
         @Override
         public Integer getItem(int position) {
+            if (position >= mYears.size()) return mYears.get(mYears.size()-1);
             return mYears.get(position);
         }
 
